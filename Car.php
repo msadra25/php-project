@@ -27,7 +27,8 @@ class Car{
         $this->id = jdate()->format('YmdHis')."_".$last_id;
         rewind($f);
         fwrite($f, $last_id);
-        fclose($f);}
+        fclose($f);
+    }
         $this->brand = $brand;
         $this->model = $model;
         $this->year = $year;
@@ -62,8 +63,13 @@ class Car{
         
     }
 
-     function retrieve($id){
-        $re = "/($id)\n([a-z]+)\n(.+)\n(\d{4})\n(\d+)/m";
+    function getCar($id, $brand, $model, $year, $priceRange){
+        // echo $id." ".$brand." ".$model." ".$year." ".$priceRange;
+
+    }
+
+    function retrieveId($id){
+        $re = "/($id)\n([a-z]+)\n(.+)\n(\d*)\n(\d+)/m";
         $f = fopen("cars.txt/carsInfo.txt", "r");
         $str = fread($f, filesize("cars.txt/carsInfo.txt"));
         preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
@@ -74,8 +80,62 @@ class Car{
         $this->price =  $matches[0][5];
         // Print the entire match resul
         return $this;
-            
-    
-    
-     }
+    }
+
+    function retrieveBrand($brand){
+        $re = "/(.+\d)\n($brand)\n(.+)\n(\d{4})\n(\d+)/m";
+        $f = fopen("cars.txt/carsInfo.txt", "r");
+        $str = fread($f, filesize("cars.txt/carsInfo.txt"));
+        preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
+        $this->id = $matches[0][1];
+        $this->brand = $brand;
+        $this->model = $matches[0][3];
+        $this->year =  $matches[0][4];
+        $this->price =  $matches[0][5];
+        // Print the entire match resul
+        return $this;
+    }
+
+    function retrieveModel($model){
+        $re = "/(.+\d)\n([a-z]+)\n($model)\n(\d{4})\n(\d+)/m";
+        $f = fopen("cars.txt/carsInfo.txt", "r");
+        $str = fread($f, filesize("cars.txt/carsInfo.txt"));
+        preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
+        $this->id = $matches[0][1];
+        $this->brand = $matches[0][2];
+        $this->model = $model;
+        $this->year =  $matches[0][4];
+        $this->price =  $matches[0][5];
+        // Print the entire match resul
+        return $this;
+    }
+
+    function retrieveYear($year){
+        $re = "/(.+\d)\n([a-z]+)\n(.+)\n($year)\n(\d+)/m";
+        $f = fopen("cars.txt/carsInfo.txt", "r");
+        $str = fread($f, filesize("cars.txt/carsInfo.txt"));
+        preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
+        $this->id = $matches[0][1];
+        $this->brand = $matches[0][2];
+        $this->model = $matches[0][3];
+        $this->year =  $year;
+        $this->price =  $matches[0][5];
+        // Print the entire match resul
+        return $this;
+    }
+
+    function retrievePrice($price){
+        $re = "/(.+\d)\n([a-z]+)\n(.+)\n(\d{4})\n($price)/m";
+        $f = fopen("cars.txt/carsInfo.txt", "r");
+        $str = fread($f, filesize("cars.txt/carsInfo.txt"));
+        preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
+        $this->id = $matches[0][1];
+        $this->brand = $matches[0][2];
+        $this->model = $matches[0][3];
+        $this->year =  $matches[0][4];
+        $this->price =  $price;
+        // Print the entire match resul
+        return $this;
+    }
 }
+
