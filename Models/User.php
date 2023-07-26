@@ -3,6 +3,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Exception;
 use League\Csv\Writer;
 use League\Csv\Reader;
+use League\Csv\Statement;
 
 class User{
     private $id;
@@ -191,5 +192,37 @@ class User{
         ]);
         return true;
     }
+    public static function get($file, $key, $value){
+        $reader = Reader::createFromPath($file, 'r');
+        $reader->setHeaderOffset(0);
+        
+        $records = Statement::create()
+            ->where(fn(array $record) => (bool) strcmp($record[$key], $value) == 0)
+            ->process($reader, ["id","first_name","last_name","phone","address","email","age"]);
+        return $records;
+    }
 
+    public static function delete($file ,$id){
+        $header = ["id","first_name","last_name","phone","address","email","age"];
+        $userAvailable = false;
+        $reader = Reader::createFromPath($file, 'r');
+        $reader->setHeaderOffset(0);
+        $records = Statement::create()
+            ->process($reader, $header);
+        $result = [];
+        foreach($records as $record){
+            if(strcmp($record["id"], $id) == 0){
+                $userAvailable = true;
+                continue;
+            }
+            array_push($result, $record);
+        }
+        $writer = Writer::createFromPath($file, 'w');
+        $writer->insertOne($header);
+        $writer->insertAll($result, $records->getHeader());
+        return $userAvailable;
+    }
+    
 }
+
+

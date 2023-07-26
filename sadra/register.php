@@ -11,7 +11,6 @@ header('Content-Type: application/json; charset=utf-8');
 try{
 $car = new Car($data->brand, $data->model, $data->year, $data->price);
 $car->save_info();
-//searchFromId($data->id);
 echo json_encode($car);
 }catch(Exception $e){
     echo json_encode([
