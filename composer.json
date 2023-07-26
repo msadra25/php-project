@@ -1,5 +1,6 @@
 {
     "require": {
-        "morilog/jalali": "3.*"
+        "morilog/jalali": "3.*",
+        "league/csv": "^9.0"
     }
 }
