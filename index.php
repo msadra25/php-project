@@ -6,7 +6,6 @@ $USER_DB = "Users.csv";
 $json = file_get_contents('php://input');
 $data = json_decode($json);
 
-
 if(strcmp($path,"addUser")== 0){
     UserController::addUser($USER_DB,$data);
 }elseif(strcmp($path,"getUser")== 0){

@@ -1,6 +1,8 @@
 <?php
 namespace Controllers;
 require 'Models/User.php';
+
+use Exception;
 use Models\User;
 class UserController{
     public static function getUser($file, $data){

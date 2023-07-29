@@ -1,7 +1,11 @@
 <?php
 
 
-require __DIR__ . '/vendor/autoload.php';
+//require __DIR__ . '/vendor/autoload.php';
+use Exception;
+use League\Csv\Writer;
+use League\Csv\Reader;
+use League\Csv\Statement;
 
 
 
@@ -15,41 +19,40 @@ class Car{
 
     
 
-    function __construct($brand=null, $model=null, $year=null, $price=null) {
-        // implement id setting(Auto incremental)
-        if($brand != null){
-        $f = fopen("last_id.txt", "r+");
-        $last_id = fread($f, filesize("last_id.txt"));
-        if(!is_numeric($last_id)){
-            throw new Exception("file is currupted!");
-        }
-        $last_id = intval($last_id) + 1;
-        $this->id = jdate()->format('YmdHis')."_".$last_id;
-        rewind($f);
-        fwrite($f, $last_id);
-        fclose($f);
-    }
-        $this->brand = $brand;
-        $this->model = $model;
-        $this->year = $year;
-        $this->price = $price;
+    // function __construct($brand=null, $model=null, $year=null, $price=null) {
+    //     // implement id setting(Auto incremental)
+    //     if($brand != null){
+    //     $f = fopen("last_id.txt", "r+");
+    //     $last_id = fread($f, filesize("last_id.txt"));
+    //     if(!is_numeric($last_id)){
+    //         throw new Exception("file is currupted!");
+    //     }
+    //     $last_id = intval($last_id) + 1;
+    //     $this->id = jdate()->format('YmdHis')."_".$last_id;
+    //     rewind($f);
+    //     fwrite($f, $last_id);
+    //     fclose($f);
+    // }
+    //     $this->brand = $brand;
+    //     $this->model = $model;
+    //     $this->year = $year;
+    //     $this->price = $price;
     
-    }
+    // }
 
     public function getId(){
         return $this->id;
-
     }
-    public function getBrand() {
+    public function getBrand(){
         return $this->brand;
     }
-    public function getModel() {
+    public function getModel(){
         return $this->model;
     }
-    public function getYear() {
+    public function getYear(){
         return $this->year;
     }
-    public function getPrice() {
+    public function getPrice(){
         return $this->price;
     }
 
@@ -75,16 +78,84 @@ class Car{
         $this->id = $id;
         return $this;
     }
-   
-    
 
-    function saveInfo(){
-        
-        $f = fopen("cars.txt/carsInfo.txt", "a");
-        fwrite($f, $this->id."\n".$this->brand."\n".$this->model."\n".$this->year."\n".$this->price."\n"."=============="."\n");
-        fclose($f);
-        
+
+   
+    public function toJson(){
+        return [
+            "Id" => $this->id,
+            "Brand" => $this->getBrand(),
+            "Model" => $this->getModel(),
+            "Year" => $this->getYear(),
+            "Price" => $this->getPrice(),
+        ];
     }
+    
+    public function saveInfo($file){
+
+        $reader = Reader::createFromPath($file, 'r');
+        $reader->setHeaderOffset(0);
+        $writer = Writer::createFromPath($file, 'a');
+        $this->setId(count($reader)+1);
+        $writer->insertOne([
+            count($reader)+1,
+            $this->getBrand(),
+            $this->getModel(),
+            $this->getYear(),
+            $this->getPrice(),
+        ]);
+        return true;
+    }
+
+    public static function getInfo($file, $key, $value){
+        $reader = Reader::createFromPath($file, 'r');
+        $reader->setHeaderOffset(0);
+        
+        $records = Statement::create()
+            ->where(fn(array $record) => (bool) strcmp($record[$key], $value) == 0)
+            ->process($reader, ["Id","Brand","Model","Year","Price"]);
+        return $records;
+    }
+
+    public static function deleteInfo($file ,$id){
+        $header = ["Id","Brand","Model","Year","Price"];
+        $userAvailable = false;
+        $reader = Reader::createFromPath($file, 'r');
+        $reader->setHeaderOffset(0);
+        $records = Statement::create()
+            ->process($reader, $header);
+        $result = [];
+        foreach($records as $record){
+            if(strcmp($record["id"], $id) == 0){
+                $userAvailable = true;
+                continue;
+            }
+            array_push($result, $record);
+        }
+        $writer = Writer::createFromPath($file, 'w');
+        $writer->insertOne($header);
+        $writer->insertAll($result, $records->getHeader());
+        return $userAvailable;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    // function saveInfo(){
+        
+    //     $f = fopen("cars.txt/carsInfo.txt", "a");
+    //     fwrite($f, $this->id."\n".$this->brand."\n".$this->model."\n".$this->year."\n".$this->price."\n"."=============="."\n");
+    //     fclose($f);
+        
+    // }
 
     // function getCar($id, $brand, $model, $year, $priceRange){
     //     // echo $id." ".$brand." ".$model." ".$year." ".$priceRange;
@@ -161,21 +232,21 @@ class Car{
     //     return $this;
     // }
 
-    function getInfo($file, $key, $value){
-        $f = fopen($file, "r");
-        if(strcmp($key, $value) == 0 ){
-            $re = "/(.+\d)\n(getBrand())\n(.+)\n(\d{4})\n(\d+)/m";
-            $f = fopen("cars.txt/carsInfo.txt", "r");
-            $str = fread($f, filesize("cars.txt/carsInfo.txt"));
-            preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
-            $this->id = $matches[0][1];
-            $this->brand = $brand;
-            $this->model = $matches[0][3];
-            $this->year =  $matches[0][4];
-            $this->price =  $matches[0][5];
-        }
+    // function getInfo($file, $key, $value){
+    //     $f = fopen($file, "r");
+    //     if(strcmp($key, $value) == 0 ){
+    //         $re = "/(.+\d)\n(getBrand())\n(.+)\n(\d{4})\n(\d+)/m";
+    //         $f = fopen("cars.txt/carsInfo.txt", "r");
+    //         $str = fread($f, filesize("cars.txt/carsInfo.txt"));
+    //         preg_match_all($re, $str, $matches, PREG_SET_ORDER, 0);
+    //         $this->id = $matches[0][1];
+    //         $this->brand = $brand;
+    //         $this->model = $matches[0][3];
+    //         $this->year =  $matches[0][4];
+    //         $this->price =  $matches[0][5];
+    //     }
         
-        return $this;
-    }
+    //     return $this;
+    // }
 }
 
