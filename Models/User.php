@@ -181,6 +181,7 @@ class User{
         $reader->setHeaderOffset(0);
         $writer = Writer::createFromPath($file, 'a');
         $this->setId(count($reader)+1);
+        
         $writer->insertOne([
             count($reader)+1,
             $this->getFirstName(),
